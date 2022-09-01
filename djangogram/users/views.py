@@ -1,48 +1,53 @@
-from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.messages.views import SuccessMessageMixin
+from http.client import HTTPResponse
+from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
-from django.views.generic import DetailView, RedirectView, UpdateView
+from django.shortcuts import render
+from django.contrib.auth import authenticate, login
+# from djangogram.djangogram.users.forms import SignUpForm
+from .forms import SignUpForm
 
-User = get_user_model()
+def main(request):
+    if request.method == 'GET':
+        return render(request, 'users/main.html')
+        # djangogram/templates/users/main.html 로 어딘가에 설정되어 있는 듯
 
+    elif request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        # authenticate는 DB에 저장할 수 있는 메소드임
 
-class UserDetailView(LoginRequiredMixin, DetailView):
+        if user is not None:
+            login(request, user)
+            #return render(request, 'posts/index.html')
+            return HttpResponseRedirect(reverse('posts:index'))
+            # reverse 함수는 콜론을 이용해 페이지 이동
+            # index는 posts/urls.py 에 있음 그냥 name은 다 urls 파일에 있음
+        
+        else:
+            return render(request, 'users/main.html')
 
-    model = User
-    slug_field = "username"
-    slug_url_kwarg = "username"
+def signup(request):
+    if request.method == 'GET':
+        form = SignUpForm()
+        return render(request, 'users/signup.html', {'form': form})
+        
 
+    elif request.method == 'POST':
+        form = SignUpForm(request.POST)
 
-user_detail_view = UserDetailView.as_view()
+        if form.is_valid():
+            form.save()
 
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
 
-class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+            user = authenticate(request, username=username, password=password)
 
-    model = User
-    fields = ["name"]
-    success_message = _("Information successfully updated")
-
-    def get_success_url(self):
-        assert (
-            self.request.user.is_authenticated
-        )  # for mypy to know that the user is authenticated
-        return self.request.user.get_absolute_url()
-
-    def get_object(self):
-        return self.request.user
-
-
-user_update_view = UserUpdateView.as_view()
-
-
-class UserRedirectView(LoginRequiredMixin, RedirectView):
-
-    permanent = False
-
-    def get_redirect_url(self):
-        return reverse("users:detail", kwargs={"username": self.request.user.username})
-
-
-user_redirect_view = UserRedirectView.as_view()
+            if user is not None:
+                login(request, user)
+                return HttpResponseRedirect(reverse('posts:index'))
+            
+        else:
+            return render(request, 'users/main.html')
+            
