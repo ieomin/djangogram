@@ -1,5 +1,5 @@
 from email.mime import image
-from tkinter import N
+# from tkinter import N
 from django.db import models
 from djangogram.users import models as user_model # 이건 절대 경로
 
