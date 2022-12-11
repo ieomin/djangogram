@@ -33,17 +33,11 @@ const handleLikeClick = (buttonId) => {
     fetch(url, {
         method: 'POST',
         mode: "same-origin",
-        headers: {
-            'X-CSRFToken': csrftoken
-        }
+        headers: {'X-CSRFToken': csrftoken }
     })
     .then(response => response.json())
     .then(data =>{
-        if(data.result === 'like'){
-            likeIcon.classList.replace("fa-heart-o", "fa-heart");
-        } else {
-            likeIcon.classList.replace("fa-heart", "fa-heart-o")
-        }
+        if(data.result === 'like') likeIcon.classList.replace("fa-heart-o", "fa-heart");
+        else likeIcon.classList.replace("fa-heart", "fa-heart-o")
     });
-
 }
